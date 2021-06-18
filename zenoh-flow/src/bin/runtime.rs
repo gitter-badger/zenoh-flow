@@ -18,9 +18,10 @@ async fn main() {
     let opt = Opt::from_args();
     let yaml_df = fs::read_to_string(opt.graph_file).unwrap();
 
-    let df = zenoh_flow::graph::deserialize_dataflow_description(yaml_df);
+    let df = zenoh_flow::graph::deserialize_dataflow_description(&yaml_df);
 
-    let mut dataflow_graph = zenoh_flow::graph::DataFlowGraph::new(Some(df));
+    let mut dataflow_graph = zenoh_flow::graph::DataFlowGraph::new(Some(df))
+        .expect("Could not generate the dataflow graph.");
 
     let dot_notation = dataflow_graph.to_dot_notation();
 

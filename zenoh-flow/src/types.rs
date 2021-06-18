@@ -105,11 +105,12 @@ pub type ZFSinkRun =
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ZFSinkDescription {
-    pub id: ZFOperatorId,
-    pub name: ZFOperatorName,
-    pub input: ZFLinkId,
-    pub lib: Option<String>,
     pub configuration: Option<HashMap<String, String>>,
+    pub id: ZFOperatorId,
+    pub input: ZFLinkId,
+    pub name: ZFOperatorName,
+    pub runtime: String,
+    pub uri: Option<String>,
 }
 
 impl std::fmt::Display for ZFSinkDescription {
@@ -120,11 +121,12 @@ impl std::fmt::Display for ZFSinkDescription {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ZFSourceDescription {
+    pub configuration: Option<HashMap<String, String>>,
     pub id: ZFOperatorId,
     pub name: ZFOperatorName,
     pub output: ZFLinkId,
-    pub lib: Option<String>,
-    pub configuration: Option<HashMap<String, String>>,
+    pub runtime: String,
+    pub uri: Option<String>,
 }
 
 impl std::fmt::Display for ZFSourceDescription {
@@ -135,12 +137,13 @@ impl std::fmt::Display for ZFSourceDescription {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ZFOperatorDescription {
-    pub id: ZFOperatorId,
-    pub name: ZFOperatorName,
-    pub inputs: Vec<ZFLinkId>,
-    pub outputs: Vec<ZFLinkId>,
-    pub lib: Option<String>,
     pub configuration: Option<HashMap<String, String>>,
+    pub id: ZFOperatorId,
+    pub inputs: Vec<ZFLinkId>,
+    pub name: ZFOperatorName,
+    pub outputs: Vec<ZFLinkId>,
+    pub runtime: String,
+    pub uri: Option<String>,
 }
 
 impl std::fmt::Display for ZFOperatorDescription {
@@ -150,21 +153,66 @@ impl std::fmt::Display for ZFOperatorDescription {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct ZFFromEndpoint {
+pub struct ZFZenohConnectorSender {
+    pub kind: String,
+    pub name: String,
+    pub resource: String,
+    pub input: String,
+    pub runtime: String,
+}
+
+impl std::fmt::Display for ZFZenohConnectorSender {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{} - {} - Kind: ZenohLink", self.kind, self.name)
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct ZFZenohConnectorReceiver {
+    pub kind: String,
+    pub name: String,
+    pub resource: String,
+    pub output: String,
+    pub runtime: String,
+}
+
+impl std::fmt::Display for ZFZenohConnectorReceiver {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{} - {} - Kind: ZenohLink", self.kind, self.name)
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub enum ZFZenohConnectorDescription {
+    Sender(ZFZenohConnectorSender),
+    Receiver(ZFZenohConnectorReceiver),
+}
+
+impl std::fmt::Display for ZFZenohConnectorDescription {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            ZFZenohConnectorDescription::Receiver(inner) => write!(f, "{}", inner),
+            ZFZenohConnectorDescription::Sender(inner) => write!(f, "{}", inner),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct ZFPortFrom {
     pub name: ZFOperatorName,
     pub output: ZFLinkId,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct ZFToEndpoint {
+pub struct ZFPortTo {
     pub name: ZFOperatorName,
     pub input: ZFLinkId,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct ZFConnection {
-    pub from: ZFFromEndpoint,
-    pub to: ZFToEndpoint,
+pub struct ZFLink {
+    pub from: ZFPortFrom,
+    pub to: ZFPortTo,
     pub size: Option<usize>,
     pub queueing_policy: Option<String>,
     pub priority: Option<usize>,
@@ -218,17 +266,11 @@ impl Token {
     }
 
     pub fn is_ready(&self) -> bool {
-        match self {
-            Self::Ready(_) => true,
-            _ => false,
-        }
+        matches!(self, Token::Ready(_))
     }
 
     pub fn is_not_ready(&self) -> bool {
-        match self {
-            Self::NotReady(_) => true,
-            _ => false,
-        }
+        matches!(self, Token::NotReady(_))
     }
 
     pub fn consume(&mut self) -> ZFResult<()> {
@@ -278,7 +320,7 @@ impl Token {
         }
     }
 
-    pub fn action<'a>(&'a self) -> &'a TokenAction {
+    pub fn action(&'_ self) -> &'_ TokenAction {
         match self {
             Self::Ready(ready) => &ready.action,
             Self::NotReady(_) => &TokenAction::Wait,
