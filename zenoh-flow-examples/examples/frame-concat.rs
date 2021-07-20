@@ -74,7 +74,7 @@ impl FrameConcat {
     }
 
     pub fn run_1(ctx: ZFContext, mut inputs: ZFInput) -> RunResult {
-        let mut results: HashMap<ZFLinkId, Arc<dyn DataTrait>> = HashMap::new();
+        let mut results: HashMap<String, Arc<dyn DataTrait>> = HashMap::new();
 
         let mut guard = ctx.lock(); //getting state
         let _state = downcast!(ConcatState, guard.state).unwrap(); //downcasting to right type
@@ -116,17 +116,6 @@ impl FrameConcat {
         Ok(results)
     }
 
-    pub fn or_1(
-        _ctx: ZFContext,
-        outputs: HashMap<ZFLinkId, Arc<dyn DataTrait>>,
-    ) -> OutputRuleResult {
-        let mut results = HashMap::new();
-        for (k, v) in outputs {
-            // should be ZFMessage::from_data
-            results.insert(k, Arc::new(ZFMessage::from_data(v)));
-        }
-        Ok(results)
-    }
 }
 
 impl OperatorTrait for FrameConcat {
