@@ -43,6 +43,7 @@ impl Runner {
     }
 
     pub fn add_input(&mut self, input: ZFLinkReceiver<ZFMessage>) {
+        log::trace!("add_input({:?})", input);
         match self {
             Runner::Operator(runner) => runner.add_input(input),
             Runner::Source(_) => panic!("Sources does not have inputs!"), // TODO this should return a ZFResult<()>
@@ -53,6 +54,7 @@ impl Runner {
     }
 
     pub fn add_output(&mut self, output: ZFLinkSender<ZFMessage>) {
+        log::trace!("add_output({:?})", output);
         match self {
             Runner::Operator(runner) => runner.add_output(output),
             Runner::Source(runner) => runner.add_output(output),
@@ -76,7 +78,7 @@ pub struct ZFOperatorRunner {
     pub operator: Box<dyn OperatorTrait + Send>,
     pub lib: Option<Library>,
     pub inputs: Vec<ZFLinkReceiver<ZFMessage>>,
-    pub outputs: HashMap<ZFLinkId, Vec<ZFLinkSender<ZFMessage>>>,
+    pub outputs: HashMap<String, Vec<ZFLinkSender<ZFMessage>>>,
 }
 
 impl ZFOperatorRunner {
@@ -108,7 +110,7 @@ impl ZFOperatorRunner {
 
         loop {
             // we should start from an HashMap with all ZFLinkId and not ready tokens
-            let mut msgs: HashMap<ZFLinkId, Token> = HashMap::new();
+            let mut msgs: HashMap<String, Token> = HashMap::new();
 
             for i in &self.inputs {
                 msgs.insert(i.id(), Token::new_not_ready(0));
@@ -289,7 +291,7 @@ impl ZFSinkRunner {
 
         loop {
             // we should start from an HashMap with all ZFLinkId and not ready tokens
-            let mut msgs: HashMap<ZFLinkId, Token> = HashMap::new();
+            let mut msgs: HashMap<String, Token> = HashMap::new();
 
             for i in self.inputs.iter() {
                 msgs.insert(i.id(), Token::new_not_ready(0));
