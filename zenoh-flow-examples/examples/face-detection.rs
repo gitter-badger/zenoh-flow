@@ -175,6 +175,7 @@ impl FaceDetection {
 
         Ok(results)
     }
+<<<<<<< HEAD
 
     pub fn or_1(
         _ctx: ZFContext,
@@ -187,6 +188,8 @@ impl FaceDetection {
         }
         Ok(results)
     }
+=======
+>>>>>>> 274856298d90c91cd16cd8844da79d128cb42490
 }
 
 impl OperatorTrait for FaceDetection {
