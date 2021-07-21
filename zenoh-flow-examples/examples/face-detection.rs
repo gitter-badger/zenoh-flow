@@ -175,21 +175,6 @@ impl FaceDetection {
 
         Ok(results)
     }
-<<<<<<< HEAD
-
-    pub fn or_1(
-        _ctx: ZFContext,
-        outputs: HashMap<String, Arc<dyn DataTrait>>,
-    ) -> OutputRuleResult {
-        let mut results = HashMap::new();
-        for (k, v) in outputs {
-            // should be ZFMessage::from_data
-            results.insert(k, Message::from_data(v));
-        }
-        Ok(results)
-    }
-=======
->>>>>>> 274856298d90c91cd16cd8844da79d128cb42490
 }
 
 impl OperatorTrait for FaceDetection {
